@@ -385,6 +385,10 @@ class Serverpod {
   /// Security context if the insights server is running over https.
   final SecurityContextConfig? _securityContextConfig;
 
+  /// Optional factory for the relic adapter of the API server; see
+  /// [ApiServerAdapterFactory]. Null keeps the default bind.
+  final ApiServerAdapterFactory? _apiServerAdapterFactory;
+
   /// Runtime parameters builder to apply to all sessions of the connection pool.
   ///
   /// Use the callback function to discover runtime parameters:
@@ -414,6 +418,7 @@ class Serverpod {
     Headers? httpResponseHeaders,
     Headers? httpOptionsResponseHeaders,
     SecurityContextConfig? securityContextConfig,
+    ApiServerAdapterFactory? apiServerAdapterFactory,
     ExperimentalFeatures? experimentalFeatures,
     this.runtimeParametersBuilder,
   }) : httpResponseHeaders = httpResponseHeaders ?? _defaultHttpResponseHeaders,
@@ -421,6 +426,7 @@ class Serverpod {
            httpOptionsResponseHeaders ?? _defaultHttpOptionsResponseHeaders,
        _configOverride = configOverride,
        _securityContextConfig = securityContextConfig,
+       _apiServerAdapterFactory = apiServerAdapterFactory,
        _healthConfig = healthConfig ?? const HealthConfig(),
        _experimental = ExperimentalApi._(
          config: config,
@@ -598,6 +604,7 @@ class Serverpod {
       httpResponseHeaders: httpResponseHeaders,
       httpOptionsResponseHeaders: httpOptionsResponseHeaders,
       securityContext: _securityContextConfig?.apiServer,
+      apiServerAdapterFactory: _apiServerAdapterFactory,
     );
 
     endpoints.initializeEndpoints(server);

@@ -76,6 +76,10 @@ class Server implements RouterInjectable {
   /// Security context if the server is running over https.
   final io.SecurityContext? _securityContext;
 
+  /// Optional factory for the relic [Adapter] the server listens on. When
+  /// null, the server binds through `RelicApp.serve`.
+  final ApiServerAdapterFactory? _apiServerAdapterFactory;
+
   /// Responsible for dispatching calls to the correct [Endpoint] methods.
   final EndpointDispatch endpoints;
 
@@ -115,6 +119,7 @@ class Server implements RouterInjectable {
     String? name,
     required this.caches,
     io.SecurityContext? securityContext,
+    ApiServerAdapterFactory? apiServerAdapterFactory,
     this.whitelistedExternalCalls,
     required this.endpoints,
     required this.httpResponseHeaders,
@@ -122,6 +127,7 @@ class Server implements RouterInjectable {
   }) : name = name ?? 'Server $serverId',
        _databasePoolManager = databasePoolManager,
        _securityContext = securityContext,
+       _apiServerAdapterFactory = apiServerAdapterFactory,
        _port = port;
 
   late final _app = RelicApp()..inject(this);
@@ -166,11 +172,20 @@ class Server implements RouterInjectable {
   }) async {
     _authenticationHandler = authenticationHandler;
     try {
-      final server = await _app.serve(
-        address: io.InternetAddress.anyIPv6,
-        port: _port,
-        securityContext: _securityContext,
-      );
+      final adapterFactory = _apiServerAdapterFactory;
+      final server = adapterFactory == null
+          ? await _app.serve(
+              address: io.InternetAddress.anyIPv6,
+              port: _port,
+              securityContext: _securityContext,
+            )
+          : await _app.run(
+              () => adapterFactory(
+                io.InternetAddress.anyIPv6,
+                _port,
+                _securityContext,
+              ),
+            );
       _actualPort = server.port;
       _relicServer = server;
     } catch (e, stackTrace) {

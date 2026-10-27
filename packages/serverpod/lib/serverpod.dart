@@ -34,5 +34,6 @@ export 'package:serverpod/src/cloud_storage/database_cloud_storage.dart';
 export 'package:serverpod/src/cache/cache_miss_handler.dart';
 
 // Experimental features
+export 'src/server/api_server_adapter_factory.dart';
 export 'src/server/experimental_features.dart';
 export 'diagnostic_events.dart';
